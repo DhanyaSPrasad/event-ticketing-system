@@ -1,5 +1,5 @@
 import Link from "next/link";
-import MongoSearch from "@/components/MongoSearch";
+import EventSearch from "@/components/EventSearch";
 import { pool } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -40,23 +40,7 @@ export default async function HomePage() {
       </div>
       {error && <div className="error">{error}</div>}
       {!error && events.length === 0 && <div className="panel">No upcoming events found. Run the seed SQL to load demo events.</div>}
-      <MongoSearch />
-      <div className="grid">
-        {events.map(event => (
-          <article className="card stack" key={event.event_id}>
-            <div className="row spread">
-              <h2>{event.title}</h2>
-              <small>#{event.event_id}</small>
-            </div>
-            <p>{event.description || "Event details will be announced."}</p>
-            <div><strong>Venue:</strong> {event.venue_name}, {event.location}</div>
-            <div><strong>Starts:</strong> {new Date(event.start_time).toLocaleString()}</div>
-            <div><strong>From:</strong> {event.min_price == null ? "N/A" : `₹${Number(event.min_price).toFixed(2)}`}</div>
-            <div><strong>Available seats:</strong> {Number(event.available_seats || 0)}</div>
-            <Link className="button" href={`/events/${event.event_id}`}>View event / book</Link>
-          </article>
-        ))}
-      </div>
+      {!error && <EventSearch events={events} />}
     </div>
   );
 }
