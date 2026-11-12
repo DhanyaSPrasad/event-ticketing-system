@@ -1,5 +1,52 @@
 // Optional MongoDB seed. Run with mongosh after selecting the event_ticketing database:
 // mongosh "mongodb://127.0.0.1:27017/event_ticketing" database/mongo-seed.js
+
+// Ensure each event has only one metadata document.
+db.event_metadata.createIndex(
+  { event_id: 1 },
+  { unique: true }
+);
+
+// Enforce MongoDB document structure and data types.
+db.runCommand({
+  collMod: "event_metadata",
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: [
+        "event_id",
+        "description",
+        "tags",
+        "amenities",
+        "search_keywords"
+      ],
+      properties: {
+        event_id: {
+          bsonType: ["int", "long"],
+          minimum: 1
+        },
+        description: {
+          bsonType: "string"
+        },
+        tags: {
+          bsonType: "array",
+          items: { bsonType: "string" }
+        },
+        amenities: {
+          bsonType: "array",
+          items: { bsonType: "string" }
+        },
+        search_keywords: {
+          bsonType: "array",
+          items: { bsonType: "string" }
+        }
+      }
+    }
+  },
+  validationLevel: "strict",
+  validationAction: "error"
+});
+
 db.event_metadata.createIndex({ search_keywords: "text", description: "text", tags: "text" });
 
 db.event_metadata.updateOne(

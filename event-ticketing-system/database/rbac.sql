@@ -37,8 +37,8 @@ GRANT SELECT (user_id, name, email, password_hash, role)
 ON event_ticketing.Users TO 'ets_customer_role';
 
 -- Dedicated application accounts. Replace these sample passwords.
-CREATE USER IF NOT EXISTS 'ets_admin'@'localhost' IDENTIFIED BY 'CHANGE_ME_ADMIN_PASSWORD';
-CREATE USER IF NOT EXISTS 'ets_customer'@'localhost' IDENTIFIED BY 'CHANGE_ME_CUSTOMER_PASSWORD';
+CREATE USER IF NOT EXISTS 'ets_admin'@'localhost' IDENTIFIED BY 'admin123';
+CREATE USER IF NOT EXISTS 'ets_customer'@'localhost' IDENTIFIED BY 'customer123';
 
 GRANT 'ets_admin_role' TO 'ets_admin'@'localhost';
 GRANT 'ets_customer_role' TO 'ets_customer'@'localhost';

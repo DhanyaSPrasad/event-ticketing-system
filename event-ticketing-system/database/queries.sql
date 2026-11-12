@@ -119,3 +119,55 @@ SELECT
     RANK() OVER (ORDER BY total_revenue DESC) AS revenue_rank
 FROM EventSales;
 
+
+
+-- 12. Recursive CTE: Generate seating layouts using actual venue capacities.
+-- Each row has a fixed 10 seats.
+-- Venue capacity is retrieved directly from the Venues table.
+
+SET @seats_per_row = 10;
+
+WITH RECURSIVE
+VenueCapacity AS (
+    SELECT venue_id, name, capacity
+    FROM Venues
+),
+MaxRows AS (
+    SELECT CEIL(MAX(capacity) / @seats_per_row) AS max_rows
+    FROM VenueCapacity
+),
+RowNumbers AS (
+    -- Base case
+    SELECT 1 AS row_number
+
+    UNION ALL
+
+    -- Recursive case
+    SELECT RowNumbers.row_number + 1
+    FROM RowNumbers
+    CROSS JOIN MaxRows
+    WHERE RowNumbers.row_number < MaxRows.max_rows
+),
+SeatNumbers AS (
+    -- Base case
+    SELECT 1 AS seat_number
+
+    UNION ALL
+
+    -- Recursive case
+    SELECT seat_number + 1
+    FROM SeatNumbers
+    WHERE seat_number < @seats_per_row
+)
+SELECT
+    VC.venue_id,
+    VC.name AS venue_name,
+    CHAR(64 + RN.row_number) AS row_label,
+    SN.seat_number
+FROM VenueCapacity VC
+CROSS JOIN RowNumbers RN
+CROSS JOIN SeatNumbers SN
+WHERE
+    (RN.row_number - 1) * @seats_per_row
+    + SN.seat_number <= VC.capacity
+ORDER BY VC.venue_id, RN.row_number, SN.seat_number;
