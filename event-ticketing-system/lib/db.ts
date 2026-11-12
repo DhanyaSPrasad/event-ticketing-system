@@ -9,12 +9,11 @@ type PoolCache = {
 const cache = globalThis as unknown as PoolCache;
 
 function makePool(role: "ADMIN" | "CUSTOMER" | "AUTH") {
-  const user = process.env[`MYSQL_${role}_USER`];
-  const password = process.env[`MYSQL_${role}_PASSWORD`];
-
-  if (!user || !password) {
-    throw new Error(`MYSQL_${role}_USER and MYSQL_${role}_PASSWORD must be configured. See database/rbac.sql and .env.example.`);
-  }
+  // Never fall back to root or a shared account. A deliberately invalid
+  // placeholder makes missing configuration fail at connection time, not
+  // during Next.js build-time module loading.
+  const user = process.env[`MYSQL_${role}_USER`] ?? `__missing_${role.toLowerCase()}_user__`;
+  const password = process.env[`MYSQL_${role}_PASSWORD`] ?? "";
 
   return mysql.createPool({
     host: process.env.MYSQL_HOST ?? "localhost",
@@ -29,8 +28,6 @@ function makePool(role: "ADMIN" | "CUSTOMER" | "AUTH") {
   });
 }
 
-// No root/default-account fallback: each application role must use its own
-// explicitly configured MySQL account.
 export const adminPool = cache.adminPool ?? makePool("ADMIN");
 export const customerPool = cache.customerPool ?? makePool("CUSTOMER");
 export const authPool = cache.authPool ?? makePool("AUTH");
