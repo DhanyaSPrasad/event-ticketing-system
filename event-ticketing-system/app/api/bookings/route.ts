@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     const seatIds = Array.isArray(body.seatIds) ? [...new Set(body.seatIds.map(Number))] : [];
     const paymentResult = body.paymentResult === "failure" ? "failure" : "success";
     if (!Number.isInteger(eventId) || eventId < 1 || seatIds.length < 1 ||
-        seatIds.some((id: number) => !Number.isInteger(id) || id < 1)) {
+        seatIds.some((id) => typeof id !== "number" || !Number.isInteger(id) || id < 1)) {
       return NextResponse.json({ error: "Select one or more valid seats." }, { status: 400 });
     }
     if (seatIds.length > 8) return NextResponse.json({ error: "You can book at most 8 seats at once." }, { status: 400 });

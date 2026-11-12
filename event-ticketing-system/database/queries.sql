@@ -71,3 +71,51 @@ SELECT e.title, tt.type_name, tt.price
 FROM Events e
 JOIN Ticket_Types tt ON e.event_id = tt.event_id
 ORDER BY e.title, tt.price;
+
+
+
+-- 10. CTE: Event-wise confirmed booking and revenue summary.
+WITH EventSales AS (
+    SELECT
+        e.event_id,
+        e.title,
+        COUNT(b.booking_id) AS confirmed_bookings,
+        COALESCE(SUM(b.total_amount), 0) AS total_revenue
+    FROM Events e
+    LEFT JOIN Bookings b
+        ON e.event_id = b.event_id
+        AND b.status = 'CONFIRMED'
+    GROUP BY e.event_id, e.title
+)
+SELECT *
+FROM EventSales
+ORDER BY total_revenue DESC;
+
+
+
+-- 11. Window function: Rank events by confirmed revenue.
+WITH EventSales AS (
+    SELECT
+        e.event_id,
+        e.title,
+        COALESCE(
+            SUM(
+                CASE
+                    WHEN b.status = 'CONFIRMED'
+                    THEN b.total_amount
+                    ELSE 0
+                END
+            ), 0
+        ) AS total_revenue
+    FROM Events e
+    LEFT JOIN Bookings b
+        ON e.event_id = b.event_id
+    GROUP BY e.event_id, e.title
+)
+SELECT
+    event_id,
+    title,
+    total_revenue,
+    RANK() OVER (ORDER BY total_revenue DESC) AS revenue_rank
+FROM EventSales;
+
