@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { pool } from "@/lib/db";
+import { adminPool } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { apiError } from "@/lib/http";
 import type { PoolConnection, RowDataPacket, ResultSetHeader } from "mysql2/promise";
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Enter a title, valid dates, venue, and non-negative prices." }, { status: 400 });
     }
 
-    connection = await pool.getConnection();
+    connection = await adminPool.getConnection();
     await connection.beginTransaction();
     const [venueRows] = await connection.query<VenueRow[]>(
       "SELECT venue_id, capacity FROM Venues WHERE venue_id = ? FOR UPDATE", [venueId]

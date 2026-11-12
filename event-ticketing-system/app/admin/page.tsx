@@ -1,4 +1,4 @@
-import { pool } from "@/lib/db";
+import { adminPool } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import AdminEventForm from "@/components/AdminEventForm";
 
@@ -12,8 +12,8 @@ export default async function AdminPage() {
   if (!user) return <div className="panel stack"><h1>Admin</h1><p>Please sign in as an admin.</p><a className="button" href="/login">Sign in</a></div>;
   if (user.role !== "Admin") return <div className="error">Access denied. This page is for administrators.</div>;
 
-  const [venueRows] = await pool.query("SELECT venue_id, name, capacity FROM Venues ORDER BY name");
-  const [reportRows] = await pool.query(`
+  const [venueRows] = await adminPool.query("SELECT venue_id, name, capacity FROM Venues ORDER BY name");
+  const [reportRows] = await adminPool.query(`
     SELECT e.event_id, e.title,
       COUNT(DISTINCT CASE WHEN b.status = 'CONFIRMED' THEN b.booking_id END) AS confirmed_bookings,
       COALESCE(SUM(CASE WHEN b.status = 'CONFIRMED' THEN b.total_amount ELSE 0 END), 0) AS total_sales,

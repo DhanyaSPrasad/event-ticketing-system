@@ -1,6 +1,6 @@
 import Link from "next/link";
 import EventSearch from "@/components/EventSearch";
-import { pool } from "@/lib/db";
+import { customerPool } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +14,7 @@ export default async function HomePage() {
   let events: EventRow[] = [];
   let error = "";
   try {
-    const [rows] = await pool.query(`
+    const [rows] = await customerPool.query(`
       SELECT e.event_id, e.title, e.description, e.start_time, e.end_time,
              v.name AS venue_name, v.location,
              SUM(es.status = 'AVAILABLE') AS available_seats,

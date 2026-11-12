@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { pool } from "@/lib/db";
+import { customerPool } from "@/lib/db";
 import BookingForm from "@/components/BookingForm";
 
 export const dynamic = "force-dynamic";
@@ -18,7 +18,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   const eventId = Number(id);
   if (!Number.isInteger(eventId) || eventId < 1) notFound();
 
-  const [eventRows] = await pool.query(`
+  const [eventRows] = await customerPool.query(`
     SELECT e.event_id, e.title, e.description, e.start_time, e.end_time,
            v.name AS venue_name, v.location
     FROM Events e JOIN Venues v ON e.venue_id = v.venue_id
@@ -27,7 +27,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   const events = eventRows as EventInfo[];
   if (!events.length) notFound();
 
-  const [seatRows] = await pool.query(`
+  const [seatRows] = await customerPool.query(`
     SELECT s.seat_id, s.row_label, s.seat_number, es.status,
            tt.type_name, tt.price
     FROM Event_Seats es
