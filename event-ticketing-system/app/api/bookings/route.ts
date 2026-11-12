@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { pool } from "@/lib/db";
+import { customerPool } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { apiError } from "@/lib/http";
 import type { PoolConnection, RowDataPacket, ResultSetHeader } from "mysql2/promise";
@@ -11,6 +11,7 @@ export async function POST(request: Request) {
   let connection: PoolConnection | undefined;
   try {
     const user = await requireUser();
+    if (user.role !== "Customer") throw new Error("FORBIDDEN");
     const body = await request.json();
     const eventId = Number(body.eventId);
     const seatIds = Array.isArray(body.seatIds) ? [...new Set(body.seatIds.map(Number))] : [];
@@ -21,7 +22,7 @@ export async function POST(request: Request) {
     }
     if (seatIds.length > 8) return NextResponse.json({ error: "You can book at most 8 seats at once." }, { status: 400 });
 
-    connection = await pool.getConnection();
+    connection = await customerPool.getConnection();
     await connection.beginTransaction();
 
     const [eventRows] = await connection.query<EventRow[]>(

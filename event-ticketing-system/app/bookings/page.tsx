@@ -1,4 +1,4 @@
-import { pool } from "@/lib/db";
+import { customerPool } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +12,9 @@ export default async function BookingsPage() {
   const user = await getSession();
   if (!user) return <div className="panel stack"><h1>My bookings</h1><p>Please sign in to view your bookings.</p><a className="button" href="/login">Sign in</a></div>;
 
-  const [rows] = await pool.query(`
+  if (user.role !== "Customer") return <div className="error">Access denied. This page is for customers.</div>;
+
+  const [rows] = await customerPool.query(`
     SELECT b.booking_id, e.title, b.booking_time, b.status, b.total_amount,
            (SELECT p.status FROM Payments p WHERE p.booking_id = b.booking_id ORDER BY p.payment_id DESC LIMIT 1) AS payment_status,
            (SELECT GROUP_CONCAT(CONCAT(s.row_label, s.seat_number) ORDER BY s.row_label, s.seat_number SEPARATOR ', ')
