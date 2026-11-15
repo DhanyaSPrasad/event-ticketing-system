@@ -45,8 +45,8 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
       <h1>{events[0].title}</h1>
       <p>{events[0].description}</p>
       <p><strong>Venue:</strong> {events[0].venue_name}, {events[0].location}</p>
-      <p><strong>Start:</strong> {new Date(events[0].start_time).toLocaleString()}</p>
-      <p><strong>End:</strong> {new Date(events[0].end_time).toLocaleString()}</p>
+      <p><strong>Start:</strong> {new Date(events[0].start_time).toLocaleString("en-IN", {timeZone: "Asia/Kolkata"})}</p>
+      <p><strong>End:</strong> {new Date(events[0].end_time).toLocaleString("en-IN", {timeZone: "Asia/Kolkata"})}</p>
     </section>
     <BookingForm eventId={eventId} seats={seats} />
   </div>;

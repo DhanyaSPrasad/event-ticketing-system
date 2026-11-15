@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 type EventItem = {
@@ -21,6 +21,11 @@ export default function EventSearch({
   events: EventItem[];
 }) {
   const [query, setQuery] = useState("");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const filteredEvents = events.filter((event) => {
     const searchText = [
@@ -90,7 +95,11 @@ export default function EventSearch({
 
               <div>
                 <strong>Starts:</strong>{" "}
-                {new Date(event.start_time).toLocaleString()}
+                {mounted
+                  ? new Date(event.start_time).toLocaleString("en-IN", {
+                      timeZone: "Asia/Kolkata"
+                    })
+                  : "Loading date..."}
               </div>
 
               <div>

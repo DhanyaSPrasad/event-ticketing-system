@@ -32,7 +32,7 @@ export default async function BookingsPage() {
       <div className="panel">
         <table><thead><tr><th>Booking</th><th>Event</th><th>Seats</th><th>Total</th><th>Status</th><th>Payment</th></tr></thead>
           <tbody>{bookings.map(b => <tr key={b.booking_id}>
-            <td>#{b.booking_id}<br /><small>{new Date(b.booking_time).toLocaleString()}</small></td>
+            <td>#{b.booking_id}<br /><small>{new Date(b.booking_time).toLocaleString("en-IN", {timeZone: "Asia/Kolkata"})}</small></td>
             <td>{b.title}</td><td>{b.seats || "—"}</td><td>₹{Number(b.total_amount).toFixed(2)}</td><td>{b.status}</td><td>{b.payment_status || "—"}</td>
           </tr>)}</tbody>
         </table>
