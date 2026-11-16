@@ -6,6 +6,7 @@ export const dynamic = "force-dynamic";
 
 type Venue = { venue_id: number; name: string; capacity: number };
 type Report = { event_id: number; title: string; confirmed_bookings: number; total_sales: number; booked_seats: number; total_seats: number };
+type AuditRow = { audit_id: number; booking_id: number; old_status: string; new_status: string; changed_at: Date };
 
 export default async function AdminPage() {
   const user = await getSession();
@@ -25,6 +26,13 @@ export default async function AdminPage() {
     GROUP BY e.event_id, e.title
     ORDER BY e.event_id DESC
   `);
+  const [auditRows] = await adminPool.query(`
+    SELECT audit_id, booking_id, old_status, new_status, changed_at
+    FROM Booking_Status_Audit
+    ORDER BY changed_at DESC, audit_id DESC
+    LIMIT 20
+  `);
+
   return <div className="stack">
     <h1>Admin dashboard</h1>
     <div className="notice">Signed in as {user.name}. Use this page to create events and review summary reports.</div>
@@ -39,6 +47,19 @@ export default async function AdminPage() {
           </tr>)}</tbody>
         </table>
       </div>
+    </section>
+    <section className="panel stack">
+      <h2>Recent booking status changes</h2>
+      <p className="muted">Automatically recorded by the MySQL trigger whenever a booking status changes.</p>
+      {(auditRows as AuditRow[]).length === 0 ? <p>No booking status changes recorded yet.</p> :
+        <div style={{ overflowX: "auto" }}>
+          <table><thead><tr><th>Audit ID</th><th>Booking</th><th>Old status</th><th>New status</th><th>Changed at</th></tr></thead>
+            <tbody>{(auditRows as AuditRow[]).map(a => <tr key={a.audit_id}>
+              <td>{a.audit_id}</td><td>#{a.booking_id}</td><td>{a.old_status}</td><td>{a.new_status}</td>
+              <td>{new Date(a.changed_at).toLocaleString("en-IN", {timeZone: "Asia/Kolkata"})}</td>
+            </tr>)}</tbody>
+          </table>
+        </div>}
     </section>
   </div>;
 }

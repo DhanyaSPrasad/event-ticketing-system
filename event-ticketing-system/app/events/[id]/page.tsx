@@ -8,6 +8,7 @@ type EventInfo = {
   event_id: number; title: string; description: string | null; start_time: Date;
   end_time: Date; venue_name: string; location: string;
 };
+type TicketType = { ticket_type_id: number; type_name: string; price: number };
 type SeatInfo = {
   seat_id: number; row_label: string; seat_number: number;
   status: "AVAILABLE" | "BOOKED"; type_name: string; price: number;
@@ -26,6 +27,11 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   `, [eventId]);
   const events = eventRows as EventInfo[];
   if (!events.length) notFound();
+
+  // Stored procedure returns the ticket categories and prices for this event.
+  const [procedureRows] = await customerPool.query("CALL GetEventTicketTypes(?)", [eventId]);
+  const ticketTypes = ((procedureRows as unknown as TicketType[][])[0] ?? [])
+    .map(ticket => ({ ...ticket, price: Number(ticket.price) }));
 
   const [seatRows] = await customerPool.query(`
     SELECT s.seat_id, s.row_label, s.seat_number, es.status,
@@ -47,6 +53,15 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
       <p><strong>Venue:</strong> {events[0].venue_name}, {events[0].location}</p>
       <p><strong>Start:</strong> {new Date(events[0].start_time).toLocaleString("en-IN", {timeZone: "Asia/Kolkata"})}</p>
       <p><strong>End:</strong> {new Date(events[0].end_time).toLocaleString("en-IN", {timeZone: "Asia/Kolkata"})}</p>
+    </section>
+    <section className="panel stack">
+      <h2>Ticket categories</h2>
+      <table>
+        <thead><tr><th>Category</th><th>Price</th></tr></thead>
+        <tbody>{ticketTypes.map(ticket => <tr key={ticket.ticket_type_id}>
+          <td>{ticket.type_name}</td><td>₹{ticket.price.toFixed(2)}</td>
+        </tr>)}</tbody>
+      </table>
     </section>
     <BookingForm eventId={eventId} seats={seats} />
   </div>;
