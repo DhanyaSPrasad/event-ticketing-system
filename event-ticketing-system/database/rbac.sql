@@ -6,7 +6,7 @@ CREATE ROLE IF NOT EXISTS 'ets_customer_role';
 
 -- Admin: event setup and operational reports.
 GRANT SELECT ON event_ticketing.Venues TO 'ets_admin_role';
-GRANT UPDATE ON event_ticketing.Venues TO 'ets_admin_role';
+GRANT UPDATE, DELETE ON event_ticketing.Venues TO 'ets_admin_role';
 GRANT SELECT ON event_ticketing.Seats TO 'ets_admin_role';
 GRANT SELECT, INSERT, UPDATE, DELETE ON event_ticketing.Events TO 'ets_admin_role';
 GRANT SELECT, INSERT, UPDATE, DELETE ON event_ticketing.Ticket_Types TO 'ets_admin_role';
