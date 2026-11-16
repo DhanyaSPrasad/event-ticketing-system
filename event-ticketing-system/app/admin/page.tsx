@@ -1,10 +1,17 @@
 import { adminPool } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import AdminEventForm from "@/components/AdminEventForm";
+import AdminManagement from "@/components/AdminManagement";
 
 export const dynamic = "force-dynamic";
 
 type Venue = { venue_id: number; name: string; capacity: number };
+type VenueManagement = Venue & { location: string };
+type EventManagement = {
+  event_id: number; title: string; description: string | null;
+  start_time: Date; end_time: Date; status: "Scheduled" | "Cancelled" | "Completed";
+  regular_price: number; premium_price: number;
+};
 type Report = { event_id: number; title: string; confirmed_bookings: number; total_sales: number; booked_seats: number; total_seats: number };
 type AuditRow = { audit_id: number; booking_id: number; old_status: string; new_status: string; changed_at: Date };
 
@@ -13,7 +20,16 @@ export default async function AdminPage() {
   if (!user) return <div className="panel stack"><h1>Admin</h1><p>Please sign in as an admin.</p><a className="button" href="/login">Sign in</a></div>;
   if (user.role !== "Admin") return <div className="error">Access denied. This page is for administrators.</div>;
 
-  const [venueRows] = await adminPool.query("SELECT venue_id, name, capacity FROM Venues ORDER BY name");
+  const [venueRows] = await adminPool.query("SELECT venue_id, name, location, capacity FROM Venues ORDER BY name");
+  const [eventRows] = await adminPool.query(`
+    SELECT e.event_id, e.title, e.description, e.start_time, e.end_time, e.status,
+      COALESCE(MAX(CASE WHEN tt.type_name = 'Regular' THEN tt.price END), 0) AS regular_price,
+      COALESCE(MAX(CASE WHEN tt.type_name = 'Premium' THEN tt.price END), 0) AS premium_price
+    FROM Events e
+    LEFT JOIN Ticket_Types tt ON tt.event_id = e.event_id
+    GROUP BY e.event_id, e.title, e.description, e.start_time, e.end_time, e.status
+    ORDER BY e.event_id DESC
+  `);
   const [reportRows] = await adminPool.query(`
     SELECT e.event_id, e.title,
       COUNT(DISTINCT CASE WHEN b.status = 'CONFIRMED' THEN b.booking_id END) AS confirmed_bookings,
@@ -33,10 +49,15 @@ export default async function AdminPage() {
     LIMIT 20
   `);
 
+  const managedEvents = (eventRows as EventManagement[]).map(e => ({
+    ...e, start_time: e.start_time.toISOString(), end_time: e.end_time.toISOString()
+  }));
+
   return <div className="stack">
     <h1>Admin dashboard</h1>
-    <div className="notice">Signed in as {user.name}. Use this page to create events and review summary reports.</div>
+    <div className="notice">Signed in as {user.name}. Use this page to manage events and venues and review summary reports.</div>
     <AdminEventForm venues={venueRows as Venue[]} />
+    <AdminManagement events={managedEvents} venues={venueRows as VenueManagement[]} />
     <section className="panel stack">
       <h2>Event sales and occupancy</h2>
       <div style={{ overflowX: "auto" }}>
