@@ -115,7 +115,7 @@ export async function PATCH(request: Request) {
          WHERE venue_id = ? AND event_id <> ? AND status = 'Scheduled'
            AND start_time < ? AND end_time > ?
          FOR UPDATE`,
-        [venueId, end, start]
+        [venueId, eventId, end, start]
       );
       if (conflicts.length) throw new Error("This venue already has another scheduled event during that time.");
     }
