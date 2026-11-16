@@ -17,7 +17,7 @@ export default async function HomePage() {
     const [rows] = await customerPool.query(`
       SELECT e.event_id, e.title, e.description, e.start_time, e.end_time,
              v.name AS venue_name, v.location,
-             SUM(es.status = 'AVAILABLE') AS available_seats,
+             fn_available_seats(e.event_id) AS available_seats,
              MIN(tt.price) AS min_price
       FROM Events e
       JOIN Venues v ON v.venue_id = e.venue_id
@@ -29,7 +29,7 @@ export default async function HomePage() {
     `);
     events = rows as EventRow[];
   } catch {
-    error = "Could not connect to MySQL. Check .env.local and run database/schema.sql and database/seed.sql.";
+    error = "Could not load events. Check the MySQL connection and ensure database/schema.sql, database/seed.sql, database/routines.sql and database/rbac.sql have been applied.";
   }
 
   return (
