@@ -14,6 +14,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON event_ticketing.Event_Seats TO 'ets_admi
 GRANT SELECT ON event_ticketing.Bookings TO 'ets_admin_role';
 GRANT SELECT ON event_ticketing.Booking_Seats TO 'ets_admin_role';
 GRANT SELECT ON event_ticketing.Payments TO 'ets_admin_role';
+GRANT SELECT ON event_ticketing.Booking_Status_Audit TO 'ets_admin_role';
 
 -- Customer: browse events and perform booking transaction operations.
 GRANT SELECT ON event_ticketing.Events TO 'ets_customer_role';
@@ -30,6 +31,11 @@ GRANT INSERT ON event_ticketing.Payments TO 'ets_customer_role';
 GRANT UPDATE (status) ON event_ticketing.Bookings TO 'ets_customer_role';
 GRANT UPDATE (status) ON event_ticketing.Booking_Seats TO 'ets_customer_role';
 GRANT UPDATE (status) ON event_ticketing.Event_Seats TO 'ets_customer_role';
+
+-- Allow the customer application connection to invoke the stored procedure and function.
+-- Run database/routines.sql before this file so both routines exist.
+GRANT EXECUTE ON PROCEDURE event_ticketing.GetEventTicketTypes TO 'ets_customer_role';
+GRANT EXECUTE ON FUNCTION event_ticketing.fn_available_seats TO 'ets_customer_role';
 
 -- Login lookup: only the fields needed to validate credentials are readable.
 -- The app uses the customer connection for this lookup, then selects the
